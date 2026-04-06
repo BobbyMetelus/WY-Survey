@@ -10,17 +10,12 @@ exports.handler = async function(event, context) {
   try {
     const rawFields = JSON.parse(event.body);
 
-    // Remove the Submitted At date field — Airtable will reject it
-    // Also remove any null, empty, or zero number values
-    const cleanFields = Object.fromEntries(
-      Object.entries(rawFields).filter(([k, v]) => {
-        if (k === 'fldzlbP0lPBXbpWkO') return false; // Skip Submitted At
-        if (v === null || v === undefined || v === '') return false;
-        return true;
-      })
-    );
+    // TEST MODE — only send the Name field to confirm connection works
+    const testFields = {
+      'fldNhyj1ArvYFmuIy': rawFields['fldNhyj1ArvYFmuIy'] || 'TEST'
+    };
 
-    console.log('Sending to Airtable:', JSON.stringify(cleanFields, null, 2));
+    console.log('TEST: Sending only Name field:', JSON.stringify(testFields));
 
     const response = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLE}`,
@@ -30,14 +25,14 @@ exports.handler = async function(event, context) {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ fields: cleanFields })
+        body: JSON.stringify({ fields: testFields })
       }
     );
 
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('Airtable rejected the request:', JSON.stringify(data, null, 2));
+      console.error('Airtable error:', JSON.stringify(data));
       return {
         statusCode: response.status,
         headers: { 'Content-Type': 'application/json' },
@@ -45,7 +40,7 @@ exports.handler = async function(event, context) {
       };
     }
 
-    console.log('Success! Record created:', data.id);
+    console.log('Success! Record ID:', data.id);
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
@@ -53,7 +48,7 @@ exports.handler = async function(event, context) {
     };
 
   } catch (err) {
-    console.error('Function error:', err.message);
+    console.error('Error:', err.message);
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
