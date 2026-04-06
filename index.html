@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wy Network — Team Survey</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff; --bg2: #f7f7f5; --bg3: #f0efe9;
+      --text: #1a1a1a; --text2: #666660; --text3: #999994;
+      --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22); --border3: rgba(0,0,0,0.35);
+      --radius: 8px; --radius-lg: 12px;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --amber: #B45309;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1c1a; --bg2: #252522; --bg3: #2e2e2b;
+        --text: #f0efe9; --text2: #999994; --text3: #666660;
+        --border: rgba(255,255,255,0.10); --border2: rgba(255,255,255,0.18); --border3: rgba(255,255,255,0.30);
+      }
+    }
+
+    body { font-family: var(--font); background: var(--bg3); color: var(--text); min-height: 100vh; padding: 2rem 1rem 5rem; }
+    .shell { max-width: 720px; margin: 0 auto; background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border); padding: 2.5rem 2rem; }
+    .brand { font-size: 11px; font-weight: 600; letter-spacing: .12em; color: var(--text3); text-transform: uppercase; margin-bottom: .5rem; }
+    h1 { font-size: 24px; font-weight: 600; line-height: 1.2; margin-bottom: .6rem; }
+    .sub { font-size: 14px; color: var(--text2); line-height: 1.6; max-width: 520px; }
+    .pbar { display: flex; gap: 4px; margin: 1.75rem 0 0; }
+    .seg { height: 3px; flex: 1; background: var(--border); border-radius: 2px; transition: background .3s; }
+    .seg.active { background: var(--text); }
+    .section { display: none; padding-top: 2rem; }
+    .section.visible { display: block; animation: fu .22s ease; }
+    @keyframes fu { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+    .slabel { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--text3); margin-bottom: 1.5rem; }
+    .qb { margin-bottom: 2rem; }
+    .qb label, .qt { display: block; font-size: 15px; font-weight: 600; margin-bottom: .4rem; color: var(--text); }
+    .qh { font-size: 12px; color: var(--text2); margin-bottom: .7rem; line-height: 1.5; }
+    input[type="text"], textarea { width: 100%; font-family: var(--font); font-size: 14px; color: var(--text); background: var(--bg); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 9px 12px; outline: none; transition: border-color .15s; }
+    input[type="text"]:focus, textarea:focus { border-color: var(--border3); box-shadow: 0 0 0 3px rgba(0,0,0,.05); }
+    textarea { min-height: 80px; resize: vertical; }
+    .role-pool { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px,1fr)); gap: 8px; margin-bottom: 1rem; }
+    .rchip { display: flex; align-items: center; gap: 8px; border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 8px 12px; font-size: 13px; cursor: pointer; transition: background .15s; background: var(--bg); color: var(--text); user-select: none; }
+    .rchip:hover { background: var(--bg2); }
+    .rchip.sel { border-color: var(--border3); background: var(--bg2); opacity: .5; cursor: default; }
+    .rchip .dot { width: 14px; height: 14px; border-radius: 50%; border: 0.5px solid var(--border2); flex-shrink: 0; background: var(--bg); transition: background .15s; }
+    .rchip.sel .dot { background: var(--text); border-color: var(--text); }
+    .rank-header { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 8px; }
+    .rank-list { list-style: none; display: flex; flex-direction: column; gap: 6px; min-height: 10px; margin-bottom: .75rem; }
+    .rank-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 0.5px solid var(--border3); border-radius: var(--radius); background: var(--bg2); font-size: 13px; color: var(--text); }
+    .rank-num { width: 20px; height: 20px; border-radius: 50%; background: var(--text); color: var(--bg); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .rank-label { flex: 1; }
+    .rank-arrows { display: flex; flex-direction: column; gap: 2px; }
+    .rank-arrow { width: 18px; height: 14px; border: 0.5px solid var(--border2); border-radius: 3px; background: var(--bg); cursor: pointer; font-size: 9px; display: flex; align-items: center; justify-content: center; color: var(--text2); transition: background .15s; line-height: 1; }
+    .rank-arrow:hover { background: var(--bg3); }
+    .rank-remove { width: 20px; height: 20px; border: none; background: transparent; cursor: pointer; color: var(--text3); font-size: 14px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
+    .rank-remove:hover { color: var(--text); background: var(--border); }
+    .rank-empty { font-size: 12px; color: var(--text3); padding: 4px 0; }
+    .chip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px,1fr)); gap: 8px; margin-bottom: .5rem; }
+    .chip { display: flex; align-items: center; gap: 8px; border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 8px 12px; font-size: 13px; cursor: pointer; transition: background .15s; background: var(--bg); color: var(--text); user-select: none; }
+    .chip:hover { background: var(--bg2); }
+    .chip.sel { border-color: var(--border3); background: var(--bg2); }
+    .chip .dot { width: 14px; height: 14px; border-radius: 50%; border: 0.5px solid var(--border2); flex-shrink: 0; background: var(--bg); transition: background .15s; }
+    .chip.sel .dot { background: var(--text); border-color: var(--text); }
+    .check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(152px,1fr)); gap: 6px; margin-bottom: .5rem; }
+    .chk { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border: 0.5px solid var(--border); border-radius: var(--radius); font-size: 13px; cursor: pointer; transition: background .15s; user-select: none; color: var(--text); background: var(--bg); }
+    .chk:hover { background: var(--bg2); }
+    .chk.sel { background: var(--bg2); border-color: var(--border3); }
+    .chk .box { width: 14px; height: 14px; border-radius: 3px; border: 0.5px solid var(--border2); flex-shrink: 0; background: var(--bg); transition: background .15s; }
+    .chk.sel .box { background: var(--text); border-color: var(--text); }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: .75rem; }
+    .tag { padding: 5px 12px; border-radius: 999px; border: 0.5px solid var(--border2); font-size: 12px; cursor: pointer; transition: background .15s; color: var(--text); background: var(--bg); user-select: none; }
+    .tag:hover { background: var(--bg2); }
+    .tag.sel { background: var(--bg2); border-color: var(--border3); }
+    .pain-sug-block { display: none; margin-top: 1.25rem; border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .pain-sug-block.visible { display: block; }
+    .psb-header { padding: 10px 16px; background: var(--bg2); border-bottom: 0.5px solid var(--border); }
+    .psb-header p { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .psb-header span { font-size: 11px; color: var(--text2); }
+    .psb-list { padding: 14px 16px; display: flex; flex-direction: column; gap: 14px; }
+    .psb-row { display: flex; flex-direction: column; gap: 5px; }
+    .psb-label { font-size: 12px; font-weight: 600; color: var(--text2); }
+    .psb-row textarea { min-height: 56px; font-size: 13px; }
+    .collab-wrap { border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .collab-grid { display: grid; grid-template-columns: minmax(0,1fr) 44px 44px 44px 44px; }
+    .collab-grid.head { background: var(--bg2); border-bottom: 0.5px solid var(--border); }
+    .ch { padding: 8px 6px; font-size: 11px; font-weight: 600; color: var(--text2); text-align: center; }
+    .ch:first-child { text-align: left; padding-left: 12px; }
+    .collab-row { display: grid; grid-template-columns: minmax(0,1fr) 44px 44px 44px 44px; border-top: 0.5px solid var(--border); }
+    .cr { padding: 9px 12px; font-size: 13px; color: var(--text); display: flex; align-items: center; }
+    .crr { display: flex; align-items: center; justify-content: center; padding: 6px 4px; }
+    .freq-radio { display: none; }
+    .freq-label { display: flex; align-items: center; justify-content: center; width: 28px; height: 26px; border-radius: var(--radius); cursor: pointer; font-size: 11px; font-weight: 600; color: var(--text2); transition: background .15s; border: 0.5px solid transparent; }
+    .freq-label:hover { background: var(--bg2); }
+    .freq-radio:checked + .freq-label { background: var(--text); color: var(--bg); }
+    .pct-row { display: grid; grid-template-columns: minmax(0,1fr) 100px 44px; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .tn { font-size: 13px; color: var(--text); }
+    input[type="range"] { width: 100%; accent-color: var(--text); cursor: pointer; }
+    .pv { font-size: 13px; font-weight: 600; color: var(--text); text-align: right; }
+    .pct-total { font-size: 12px; color: var(--text2); margin-top: .5rem; }
+    .pct-total.over { color: var(--amber); font-weight: 600; }
+    .rating-wrap { border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .scale-row { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 0.5px solid var(--border); }
+    .scale-row:last-child { border-bottom: none; }
+    .sn { font-size: 13px; color: var(--text); }
+    .scale-btns { display: flex; gap: 4px; }
+    .scale-btn { width: 30px; height: 28px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: var(--bg); font-size: 12px; cursor: pointer; color: var(--text2); font-family: var(--font); transition: background .15s; }
+    .scale-btn:hover { background: var(--bg2); }
+    .scale-btn.sel { background: var(--text); color: var(--bg); border-color: transparent; }
+    .divider { height: 0.5px; background: var(--border); margin: 2rem 0; }
+    .btn-row { display: flex; align-items: center; justify-content: space-between; margin-top: 2.5rem; gap: 12px; }
+    .btn { font-family: var(--font); font-size: 13px; font-weight: 600; padding: 10px 22px; border-radius: var(--radius); cursor: pointer; transition: background .15s, opacity .15s; border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); }
+    .btn:hover { background: var(--bg2); }
+    .btn-primary { background: var(--text); color: var(--bg); border-color: transparent; }
+    .btn-primary:hover { opacity: .85; }
+    .btn-ghost { background: transparent; border-color: transparent; color: var(--text2); }
+    .btn-ghost:hover { color: var(--text); background: transparent; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .done-screen { display: none; text-align: center; padding: 3rem 1rem; }
+    .done-screen.visible { display: block; }
+    .done-check { width: 54px; height: 54px; border-radius: 50%; border: 0.5px solid var(--border2); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; font-size: 24px; }
+    .done-screen h2 { font-size: 20px; font-weight: 600; margin-bottom: .5rem; }
+    .done-screen p { font-size: 14px; color: var(--text2); max-width: 380px; margin: 0 auto; line-height: 1.6; }
+    .error-screen { display: none; text-align: center; padding: 3rem 1rem; }
+    .error-screen.visible { display: block; }
+    .err-icon { width: 54px; height: 54px; border-radius: 50%; border: 0.5px solid var(--border2); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; font-size: 24px; }
+    .error-screen h2 { font-size: 20px; font-weight: 600; margin-bottom: .5rem; }
+    .error-screen p { font-size: 14px; color: var(--text2); max-width: 380px; margin: 0 auto 1.5rem; line-height: 1.6; }
+    .submitting-overlay { display: none; text-align: center; padding: 3rem 1rem; }
+    .submitting-overlay.visible { display: block; }
+    .spin { width: 32px; height: 32px; border: 2px solid var(--border); border-top-color: var(--text); border-radius: 50%; margin: 0 auto 1rem; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <div class="brand">Wy Network — Production Team</div>
+  <h1>Team roles &amp; responsibilities survey</h1>
+  <p class="sub">Your input shapes how we structure and support the team. There are no right or wrong answers — be direct and honest.</p>
+  <div class="pbar">
+    <div class="seg active" id="s0"></div>
+    <div class="seg" id="s1"></div>
+    <div class="seg" id="s2"></div>
+    <div class="seg" id="s3"></div>
+    <div class="seg" id="s4"></div>
+    <div class="seg" id="s5"></div>
+  </div>
+
+  <!-- SECTION 1 -->
+  <div class="section visible" id="sec0">
+    <div class="slabel">Section 1 of 6 — Identity</div>
+    <div class="qb"><label>Your full name</label><input type="text" id="nm" placeholder="First and last name"></div>
+    <div class="qb">
+      <div class="qt">Your role(s)</div>
+      <div class="qh">Select all that apply. Use the arrows to rank by primary responsibility.</div>
+      <div class="role-pool" id="role-pool">
+        <div class="rchip" data-val="Post Producer"><div class="dot"></div>Post producer</div>
+        <div class="rchip" data-val="Podcast Editor"><div class="dot"></div>Podcast editor</div>
+        <div class="rchip" data-val="Vlog Editor"><div class="dot"></div>Vlog editor</div>
+        <div class="rchip" data-val="Show Producer"><div class="dot"></div>Show producer</div>
+        <div class="rchip" data-val="Social Media"><div class="dot"></div>Social media</div>
+        <div class="rchip" data-val="Post-Copy Editor"><div class="dot"></div>Post-copy editor</div>
+        <div class="rchip" data-val="Quality Control (QC)"><div class="dot"></div>Quality control (QC)</div>
+        <div class="rchip" data-val="Production Assistant"><div class="dot"></div>Production assistant</div>
+        <div class="rchip" data-val="Other / Hybrid"><div class="dot"></div>Other / hybrid</div>
+      </div>
+      <div class="rank-header">Your selected roles — ranked by priority</div>
+      <ul class="rank-list" id="rank-list"><li class="rank-empty">No roles selected yet — tap above to add.</li></ul>
+      <input type="text" id="role-custom" placeholder="Describe your actual title if different (optional)">
+    </div>
+    <div class="qb"><label>Who do you directly report to?</label><input type="text" id="rpts" placeholder="Name and/or title"></div>
+    <div class="qb">
+      <div class="qt">How long have you been in this role?</div>
+      <div class="chip-grid" id="tenure-chips">
+        <div class="chip" data-val="Less than 3 months"><div class="dot"></div>Less than 3 months</div>
+        <div class="chip" data-val="3-6 months"><div class="dot"></div>3–6 months</div>
+        <div class="chip" data-val="6-12 months"><div class="dot"></div>6–12 months</div>
+        <div class="chip" data-val="1-2 years"><div class="dot"></div>1–2 years</div>
+        <div class="chip" data-val="2+ years"><div class="dot"></div>2+ years</div>
+      </div>
+    </div>
+    <div class="qb"><label>Do you manage or oversee any team members?</label><textarea id="mgmt" placeholder="List names or roles, or leave blank if not applicable"></textarea></div>
+    <div class="btn-row"><span></span><button class="btn btn-primary" onclick="go(1)">Next →</button></div>
+  </div>
+
+  <!-- SECTION 2 -->
+  <div class="section" id="sec1">
+    <div class="slabel">Section 2 of 6 — Responsibilities</div>
+    <div class="qb"><div class="qt">What are your core responsibilities?</div><div class="qh">List the 3–5 duties most central to your role.</div><textarea id="core" placeholder="e.g. Edit all vlog episodes end-to-end, coordinate with talent..."></textarea></div>
+    <div class="qb">
+      <div class="qt">Which of these also applies to your role?</div>
+      <div class="check-grid" id="resp-checks">
+        <div class="chk" data-val="Script / story development"><div class="box"></div>Script / story development</div>
+        <div class="chk" data-val="Talent coordination"><div class="box"></div>Talent coordination</div>
+        <div class="chk" data-val="Graphics / motion design"><div class="box"></div>Graphics / motion design</div>
+        <div class="chk" data-val="Captioning / subtitles"><div class="box"></div>Captioning / subtitles</div>
+        <div class="chk" data-val="Asset management / file org"><div class="box"></div>Asset management / file org</div>
+        <div class="chk" data-val="Scheduling / calendar mgmt"><div class="box"></div>Scheduling / calendar mgmt</div>
+        <div class="chk" data-val="QC / review passes"><div class="box"></div>QC / review passes</div>
+        <div class="chk" data-val="Client / brand comms"><div class="box"></div>Client / brand comms</div>
+        <div class="chk" data-val="Content strategy"><div class="box"></div>Content strategy</div>
+        <div class="chk" data-val="Analytics / performance"><div class="box"></div>Analytics / performance</div>
+        <div class="chk" data-val="Publishing / distribution"><div class="box"></div>Publishing / distribution</div>
+        <div class="chk" data-val="Team training / onboarding"><div class="box"></div>Team training / onboarding</div>
+      </div>
+    </div>
+    <div class="qb"><div class="qt">What tasks feel outside your core role?</div><textarea id="outside" placeholder="Recurring work that feels like it belongs to someone else..."></textarea></div>
+    <div class="qb">
+      <div class="qt">How do you spend your time? (estimated %)</div>
+      <div class="qh">Adjust sliders to reflect a typical week. Aim for 100% total.</div>
+      <div class="pct-row"><span class="tn">Pre-production / planning</span><input type="range" min="0" max="100" value="10" step="5" class="psl" data-field="pre"><span class="pv">10%</span></div>
+      <div class="pct-row"><span class="tn">Research</span><input type="range" min="0" max="100" value="10" step="5" class="psl" data-field="research"><span class="pv">10%</span></div>
+      <div class="pct-row"><span class="tn">Show notes</span><input type="range" min="0" max="100" value="10" step="5" class="psl" data-field="shownotes"><span class="pv">10%</span></div>
+      <div class="pct-row"><span class="tn">Video editing</span><input type="range" min="0" max="100" value="15" step="5" class="psl" data-field="video"><span class="pv">15%</span></div>
+      <div class="pct-row"><span class="tn">Audio / podcast editing</span><input type="range" min="0" max="100" value="10" step="5" class="psl" data-field="audio"><span class="pv">10%</span></div>
+      <div class="pct-row"><span class="tn">Show graphics / show art</span><input type="range" min="0" max="100" value="10" step="5" class="psl" data-field="graphics"><span class="pv">10%</span></div>
+      <div class="pct-row"><span class="tn">Communication / coordination</span><input type="range" min="0" max="100" value="10" step="5" class="psl" data-field="comms"><span class="pv">10%</span></div>
+      <div class="pct-row"><span class="tn">Social / publishing</span><input type="range" min="0" max="100" value="10" step="5" class="psl" data-field="social"><span class="pv">10%</span></div>
+      <div class="pct-row"><span class="tn">Admin / reporting</span><input type="range" min="0" max="100" value="5" step="5" class="psl" data-field="admin"><span class="pv">5%</span></div>
+      <div class="pct-total" id="ptot">Total: 90%</div>
+    </div>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="go(0)">← Back</button><button class="btn btn-primary" onclick="go(2)">Next →</button></div>
+  </div>
+
+  <!-- SECTION 3 -->
+  <div class="section" id="sec2">
+    <div class="slabel">Section 3 of 6 — Collaboration</div>
+    <div class="qb">
+      <div class="qt">How often do you collaborate with each team?</div>
+      <div class="qh">D = Daily &nbsp;&nbsp; W = Weekly &nbsp;&nbsp; M = Monthly &nbsp;&nbsp; R = Rarely / never</div>
+      <div class="collab-wrap">
+        <div class="collab-grid head"><div class="ch">Team / role</div><div class="ch">D</div><div class="ch">W</div><div class="ch">M</div><div class="ch">R</div></div>
+        <div id="ctable"></div>
+      </div>
+    </div>
+    <div class="qb"><div class="qt">Who do you most depend on to move your work forward?</div><textarea id="dep" placeholder="Name(s) or role(s) and what you typically need from them..."></textarea></div>
+    <div class="qb"><div class="qt">Any collaboration gaps you've noticed?</div><div class="qh">Unclear handoffs, roles that don't connect, duplicated efforts.</div><textarea id="cgaps" placeholder="e.g. Handoff between podcast editor and social team is unclear..."></textarea></div>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="go(1)">← Back</button><button class="btn btn-primary" onclick="go(3)">Next →</button></div>
+  </div>
+
+  <!-- SECTION 4 -->
+  <div class="section" id="sec3">
+    <div class="slabel">Section 4 of 6 — Friction &amp; support</div>
+    <div class="qb">
+      <div class="qt">Current pain points</div>
+      <div class="qh">Select every item that reflects a recurring issue.</div>
+      <div class="tag-row" id="pain-tags">
+        <div class="tag" data-val="Unclear priorities">Unclear priorities</div>
+        <div class="tag" data-val="Too many revision rounds">Too many revision rounds</div>
+        <div class="tag" data-val="Slow approvals">Slow approvals</div>
+        <div class="tag" data-val="Duplicated work">Duplicated work</div>
+        <div class="tag" data-val="No clear feedback loop">No clear feedback loop</div>
+        <div class="tag" data-val="Resource constraints">Resource constraints</div>
+        <div class="tag" data-val="Scope creep">Scope creep</div>
+        <div class="tag" data-val="Unclear ownership">Unclear ownership</div>
+        <div class="tag" data-val="Communication overload">Communication overload</div>
+        <div class="tag" data-val="Underutilized skills">Underutilized skills</div>
+        <div class="tag" data-val="Siloed teams">Siloed teams</div>
+        <div class="tag" data-val="Lack of documentation">Lack of documentation</div>
+        <div class="tag" data-val="Insufficient headcount">Insufficient headcount</div>
+        <div class="tag" data-val="Inconsistent deadlines">Inconsistent deadlines</div>
+      </div>
+      <div class="pain-sug-block" id="pain-sug-block">
+        <div class="psb-header"><p>Your ideas for improvement</p><span>For each pain point selected, share what would help fix it.</span></div>
+        <div class="psb-list" id="psb-list"></div>
+      </div>
+    </div>
+    <div class="qb">
+      <div class="qt">Rate how supported you feel in each area</div>
+      <div class="qh">1 = not at all &nbsp;&nbsp; 5 = fully supported</div>
+      <div class="rating-wrap">
+        <div class="scale-row"><span class="sn">Clear direction on priorities</span><div class="scale-btns" data-grp="prio"></div></div>
+        <div class="scale-row"><span class="sn">Access to the tools you need</span><div class="scale-btns" data-grp="tools"></div></div>
+        <div class="scale-row"><span class="sn">Feedback quality on your work</span><div class="scale-btns" data-grp="feedback"></div></div>
+        <div class="scale-row"><span class="sn">Workload manageability</span><div class="scale-btns" data-grp="workload"></div></div>
+        <div class="scale-row"><span class="sn">Cross-team communication</span><div class="scale-btns" data-grp="comms"></div></div>
+        <div class="scale-row"><span class="sn">Clarity of your role</span><div class="scale-btns" data-grp="role"></div></div>
+      </div>
+    </div>
+    <div class="qb"><div class="qt">What one change would most improve how you do your job?</div><textarea id="one-change" placeholder="Process, tools, people, structure — anything..."></textarea></div>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="go(2)">← Back</button><button class="btn btn-primary" onclick="go(4)">Next →</button></div>
+  </div>
+
+  <!-- SECTION 5 -->
+  <div class="section" id="sec4">
+    <div class="slabel">Section 5 of 6 — Tools &amp; workflow</div>
+    <div class="qb">
+      <div class="qt">Which tools do you use regularly?</div>
+      <div class="check-grid" id="tool-checks">
+        <div class="chk" data-val="Adobe Premiere"><div class="box"></div>Adobe Premiere</div>
+        <div class="chk" data-val="DaVinci Resolve"><div class="box"></div>DaVinci Resolve</div>
+        <div class="chk" data-val="Final Cut Pro"><div class="box"></div>Final Cut Pro</div>
+        <div class="chk" data-val="After Effects"><div class="box"></div>After Effects</div>
+        <div class="chk" data-val="Audition / Audacity"><div class="box"></div>Audition / Audacity</div>
+        <div class="chk" data-val="Adobe Photoshop"><div class="box"></div>Adobe Photoshop</div>
+        <div class="chk" data-val="Adobe Illustrator"><div class="box"></div>Adobe Illustrator</div>
+        <div class="chk" data-val="Figma / Canva"><div class="box"></div>Figma / Canva</div>
+        <div class="chk" data-val="YouTube Studio"><div class="box"></div>YouTube Studio</div>
+        <div class="chk" data-val="Frame.io"><div class="box"></div>Frame.io</div>
+        <div class="chk" data-val="Notion"><div class="box"></div>Notion</div>
+        <div class="chk" data-val="Asana / Monday"><div class="box"></div>Asana / Monday</div>
+        <div class="chk" data-val="Slack"><div class="box"></div>Slack</div>
+        <div class="chk" data-val="Google Drive"><div class="box"></div>Google Drive</div>
+        <div class="chk" data-val="Dropbox"><div class="box"></div>Dropbox</div>
+        <div class="chk" data-val="Descript"><div class="box"></div>Descript</div>
+        <div class="chk" data-val="Buzzsprout / Anchor"><div class="box"></div>Buzzsprout / Anchor</div>
+        <div class="chk" data-val="Instagram / TikTok tools"><div class="box"></div>Instagram / TikTok tools</div>
+      </div>
+      <input type="text" id="tools-other" placeholder="Any others not listed (optional)" style="margin-top:8px">
+    </div>
+    <div class="qb"><div class="qt">Tools or platforms you wish the team used?</div><textarea id="twish" placeholder="What's missing from your current toolkit?"></textarea></div>
+    <div class="qb">
+      <div class="qt">How would you describe your main workflow?</div>
+      <div class="chip-grid" id="wf-chips">
+        <div class="chip" data-val="Well-defined and consistent"><div class="dot"></div>Well-defined and consistent</div>
+        <div class="chip" data-val="Mostly clear with some gaps"><div class="dot"></div>Mostly clear with some gaps</div>
+        <div class="chip" data-val="Varies a lot by project"><div class="dot"></div>Varies a lot by project</div>
+        <div class="chip" data-val="Unclear / we improvise often"><div class="dot"></div>Unclear / we improvise often</div>
+      </div>
+      <textarea id="wf-notes" placeholder="Any additional context (optional)" style="margin-top:8px;min-height:60px"></textarea>
+    </div>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="go(3)">← Back</button><button class="btn btn-primary" onclick="go(5)">Next →</button></div>
+  </div>
+
+  <!-- SECTION 6 -->
+  <div class="section" id="sec5">
+    <div class="slabel">Section 6 of 6 — Vision &amp; growth</div>
+    <div class="qb">
+      <div class="qt">Where do you see the Wy Network in 12–18 months?</div>
+      <div class="check-grid" id="vision-checks">
+        <div class="chk" data-val="Larger YouTube audience"><div class="box"></div>Larger YouTube audience</div>
+        <div class="chk" data-val="More original content"><div class="box"></div>More original content</div>
+        <div class="chk" data-val="Brand partnerships"><div class="box"></div>Brand partnerships</div>
+        <div class="chk" data-val="Podcast network expansion"><div class="box"></div>Podcast network expansion</div>
+        <div class="chk" data-val="Live events / activations"><div class="box"></div>Live events / activations</div>
+        <div class="chk" data-val="Stronger social presence"><div class="box"></div>Stronger social presence</div>
+        <div class="chk" data-val="Higher production quality"><div class="box"></div>Higher production quality</div>
+        <div class="chk" data-val="Bigger team / headcount"><div class="box"></div>Bigger team / headcount</div>
+        <div class="chk" data-val="Syndication / licensing"><div class="box"></div>Syndication / licensing</div>
+        <div class="chk" data-val="Clearer brand identity"><div class="box"></div>Clearer brand identity</div>
+      </div>
+      <textarea id="vision-more" placeholder="Tell us more about what you envision..." style="margin-top:8px"></textarea>
+    </div>
+    <div class="qb"><div class="qt">How do you see yourself contributing to that growth?</div><textarea id="contrib" placeholder="Be specific about your role in getting the network there..."></textarea></div>
+    <div class="qb"><div class="qt">What skills or strengths do you bring that are currently underutilized?</div><textarea id="underutil" placeholder="Skills or ideas that haven't had a chance to show up yet..."></textarea></div>
+    <div class="qb">
+      <div class="qt">Where do you want to grow professionally?</div>
+      <div class="chip-grid" id="growth-chips">
+        <div class="chip" data-val="Deepen current expertise"><div class="dot"></div>Deepen current expertise</div>
+        <div class="chip" data-val="Move into a leadership role"><div class="dot"></div>Move into leadership</div>
+        <div class="chip" data-val="Expand into adjacent areas"><div class="dot"></div>Expand into adjacent areas</div>
+        <div class="chip" data-val="Build and manage a sub-team"><div class="dot"></div>Build / manage a sub-team</div>
+        <div class="chip" data-val="Not sure yet"><div class="dot"></div>Not sure yet</div>
+      </div>
+      <textarea id="growth-notes" placeholder="Any details on your professional goals (optional)" style="margin-top:8px;min-height:60px"></textarea>
+    </div>
+    <div class="divider"></div>
+    <div class="qb"><div class="qt">Anything else you'd like leadership to know?</div><textarea id="final" placeholder="Open space — share whatever feels relevant..."></textarea></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="go(4)">← Back</button>
+      <button class="btn btn-primary" id="submit-btn" onclick="submitForm()">Submit survey</button>
+    </div>
+  </div>
+
+  <div class="submitting-overlay" id="submitting">
+    <div class="spin"></div>
+    <p style="font-size:14px;color:var(--text2)">Submitting your response...</p>
+  </div>
+
+  <div class="done-screen" id="done">
+    <div class="done-check">✓</div>
+    <h2>Response submitted</h2>
+    <p>Thank you for taking the time. Your input will directly shape how the Wy Network team is structured and supported.</p>
+  </div>
+
+  <div class="error-screen" id="error-screen">
+    <div class="err-icon">!</div>
+    <h2>Something went wrong</h2>
+    <p>Your response couldn't be submitted. Please try again or contact your team lead directly.</p>
+    <button class="btn btn-primary" onclick="retrySubmit()">Try again</button>
+  </div>
+</div>
+
+<script>
+  const rankItems = [];
+
+  function renderRankList() {
+    const ul = document.getElementById('rank-list');
+    ul.innerHTML = '';
+    if (rankItems.length === 0) { ul.innerHTML = '<li class="rank-empty">No roles selected yet — tap above to add.</li>'; return; }
+    rankItems.forEach((val, i) => {
+      const li = document.createElement('li'); li.className = 'rank-item';
+      li.innerHTML = `<div class="rank-num">${i+1}</div><span class="rank-label">${val}</span><div class="rank-arrows"><button class="rank-arrow" onclick="moveRank(${i},-1)">&#9650;</button><button class="rank-arrow" onclick="moveRank(${i},1)">&#9660;</button></div><button class="rank-remove" onclick="removeRank(${i})">&#x2715;</button>`;
+      ul.appendChild(li);
+    });
+  }
+
+  function moveRank(i, dir) { const j=i+dir; if(j<0||j>=rankItems.length)return; [rankItems[i],rankItems[j]]=[rankItems[j],rankItems[i]]; renderRankList(); }
+  function removeRank(i) { const val=rankItems[i]; rankItems.splice(i,1); document.querySelectorAll('#role-pool .rchip').forEach(c=>{if(c.dataset.val===val)c.classList.remove('sel')}); renderRankList(); }
+
+  document.querySelectorAll('#role-pool .rchip').forEach(c => {
+    c.addEventListener('click', () => { if(c.classList.contains('sel'))return; c.classList.add('sel'); rankItems.push(c.dataset.val); renderRankList(); });
+  });
+
+  ['tenure-chips','wf-chips','growth-chips'].forEach(id => {
+    document.querySelectorAll('#'+id+' .chip').forEach(c => {
+      c.addEventListener('click', () => { document.querySelectorAll('#'+id+' .chip').forEach(x=>x.classList.remove('sel')); c.classList.add('sel'); });
+    });
+  });
+
+  document.querySelectorAll('.chk').forEach(el => el.addEventListener('click', () => el.classList.toggle('sel')));
+
+  const CROW = ['Post producer','Podcast editor','Vlog editor','Show producer','Social media','Post-copy editor','Quality control (QC)','Production assistant','Executive / leadership'];
+  const ct = document.getElementById('ctable');
+  CROW.forEach((r, i) => {
+    const row = document.createElement('div'); row.className = 'collab-row';
+    let html = `<div class="cr">${r}</div>`;
+    ['D','W','M','R'].forEach(f => { const id=`f${i}${f}`; html+=`<div class="crr"><input type="radio" class="freq-radio" name="c${i}" id="${id}" value="${f}"><label class="freq-label" for="${id}">${f}</label></div>`; });
+    row.innerHTML = html; ct.appendChild(row);
+  });
+
+  document.querySelectorAll('.psl').forEach(s => {
+    const pv = s.closest('.pct-row').querySelector('.pv');
+    s.addEventListener('input', () => { pv.textContent = Math.round(s.value)+'%'; updatePct(); });
+  });
+  function updatePct() { let t=0; document.querySelectorAll('.psl').forEach(s=>t+=parseInt(s.value)); const el=document.getElementById('ptot'); el.textContent='Total: '+Math.round(t)+'%'; el.className='pct-total'+(t!==100?' over':''); }
+
+  const psb = document.getElementById('psb-list');
+  const painBlock = document.getElementById('pain-sug-block');
+  document.querySelectorAll('#pain-tags .tag').forEach(tag => { tag.addEventListener('click', () => { tag.classList.toggle('sel'); rebuildSuggestions(); }); });
+  function rebuildSuggestions() {
+    const selected = [...document.querySelectorAll('#pain-tags .tag.sel')].map(t=>t.dataset.val);
+    if(selected.length===0){painBlock.classList.remove('visible');return;}
+    painBlock.classList.add('visible');
+    const saved={};
+    psb.querySelectorAll('.psb-row').forEach(row=>{saved[row.dataset.key]=row.querySelector('textarea').value;});
+    psb.innerHTML='';
+    selected.forEach(val=>{
+      const row=document.createElement('div'); row.className='psb-row'; row.dataset.key=val;
+      const lbl=document.createElement('div'); lbl.className='psb-label'; lbl.textContent=val;
+      const ta=document.createElement('textarea'); ta.placeholder=`How would you address: "${val}"?`; ta.value=saved[val]||'';
+      row.appendChild(lbl); row.appendChild(ta); psb.appendChild(row);
+    });
+  }
+
+  document.querySelectorAll('.scale-btns').forEach(wrap => {
+    for(let n=1;n<=5;n++){const b=document.createElement('button');b.className='scale-btn';b.textContent=n;b.type='button';b.addEventListener('click',()=>{wrap.querySelectorAll('.scale-btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')});wrap.appendChild(b);}
+  });
+
+  function go(i) {
+    document.querySelectorAll('.section').forEach((s,j)=>s.classList.toggle('visible',j===i));
+    for(let j=0;j<6;j++)document.getElementById('s'+j).classList.toggle('active',j<=i);
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function collectData() {
+    const rankStr = rankItems.map((v,i)=>`${i+1}. ${v}`).join(', ');
+    const collabLines = CROW.map((role,i)=>{const sel=document.querySelector(`input[name="c${i}"]:checked`);return `${role}: ${sel?sel.value:'N/A'}`;}).join(' | ');
+    const painSelected = [...document.querySelectorAll('#pain-tags .tag.sel')].map(t=>t.dataset.val).join(', ');
+    const painSuggestions = [...document.querySelectorAll('#psb-list .psb-row')].map(r=>`${r.querySelector('.psb-label').textContent}: ${r.querySelector('textarea').value}`).join(' | ');
+    const respChecks = [...document.querySelectorAll('#resp-checks .chk.sel')].map(c=>c.dataset.val).join(', ');
+    const toolsUsed = [...document.querySelectorAll('#tool-checks .chk.sel')].map(c=>c.dataset.val).join(', ');
+    const visionAreas = [...document.querySelectorAll('#vision-checks .chk.sel')].map(c=>c.dataset.val).join(', ');
+    const tenure = document.querySelector('#tenure-chips .chip.sel')?.dataset.val||'';
+    const wfClarity = document.querySelector('#wf-chips .chip.sel')?.dataset.val||'';
+    const growthDir = document.querySelector('#growth-chips .chip.sel')?.dataset.val||'';
+    const getRating = grp=>{const b=document.querySelector(`.scale-btns[data-grp="${grp}"] .scale-btn.sel`);return b?parseInt(b.textContent):0;};
+    const getSlider = field=>{const s=document.querySelector(`.psl[data-field="${field}"]`);return s?parseInt(s.value):0;};
+
+    return {
+      'fldNhyj1ArvYFmuIy': document.getElementById('nm').value,
+      'fldOXcYyBTNTsaeRZ': rankStr,
+      'fldraMdpbtwuMyIFQ': document.getElementById('role-custom').value,
+      'fldg5zE4HYVsQjZcq': document.getElementById('rpts').value,
+      'fldTcfqYhCKcXPchj': tenure,
+      'fld9TNtj1vrYmhlsJ': document.getElementById('mgmt').value,
+      'fldiKiqyUNDlxilst': document.getElementById('core').value,
+      'fldWWnVpMzB69fZ8Q': respChecks,
+      'fldnuQ06C8SiN4jxY': document.getElementById('outside').value,
+      'fldQA5RCZvCq61yN2': getSlider('pre'),
+      'fldshgh2MIub4EK3j': getSlider('research'),
+      'flduKfbu8lz5WMNx3': getSlider('shownotes'),
+      'fldyxBxkY12VOiGOB': getSlider('video'),
+      'fld4d4nCPbKGTB6lp': getSlider('audio'),
+      'fldhTXFqgpHwcsmV0': getSlider('graphics'),
+      'fldRFQa91p8JsBV85': getSlider('comms'),
+      'fldaCU4P5PmMLJGK7': getSlider('social'),
+      'fldZnpHczY4bECsg5': getSlider('admin'),
+      'fldxlUKwzPJM1Do0l': collabLines,
+      'fldeSFiRnHrEzGOvd': document.getElementById('dep').value,
+      'fldntUtenMfRiRJhw': document.getElementById('cgaps').value,
+      'fldtqLkhHP6BetBCk': painSelected,
+      'fldYzMCyxVsRCBuC7': painSuggestions,
+      'fld1Hx0QALwupkt3a': getRating('prio'),
+      'fldtQaERpApvVELg1': getRating('tools'),
+      'fldCsrYxg16GquCSI': getRating('feedback'),
+      'fldkFDQtUGdBp1T0':  getRating('workload'),
+      'fldfkNvu9L6F5efko': getRating('comms'),
+      'fldmSYGn0qt0vQ7WW': getRating('role'),
+      'fldgo1OTHkHunKrnR': document.getElementById('one-change').value,
+      'fldmNz3jpHiaDojfp': toolsUsed,
+      'fldaYTULMYf28kTEq': document.getElementById('tools-other').value,
+      'fldXeFSf14RdMBDxU': document.getElementById('twish').value,
+      'fldAxcLWMwNobyVg4': wfClarity,
+      'fldp8ed8tDyzj11pf': document.getElementById('wf-notes').value,
+      'fldVxqffADSUHeZo7': visionAreas,
+      'fldUBo6yCvWMJfydt': document.getElementById('vision-more').value,
+      'fldagDt6NbfISAY1Q': document.getElementById('contrib').value,
+      'fldzjCUeVkWWlbC9S': document.getElementById('underutil').value,
+      'fldaq49TRRTNFuGT0': growthDir,
+      'fldfxohLLz0zc7j8X': document.getElementById('growth-notes').value,
+      'fldZYBwn4fmusfL77': document.getElementById('final').value,
+      'fldzlbP0lPBXbpWkO': new Date().toISOString().split('T')[0],
+    };
+  }
+
+  async function submitForm() {
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('visible'));
+    document.getElementById('submitting').classList.add('visible');
+    window.scrollTo({top:0,behavior:'smooth'});
+
+    const fields = collectData();
+    const cleanFields = Object.fromEntries(Object.entries(fields).filter(([k,v])=>v!==null&&v!==''&&v!==undefined));
+
+    try {
+      const res = await fetch('/.netlify/functions/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cleanFields)
+      });
+      if(!res.ok) throw new Error(`Error: ${res.status}`);
+      document.getElementById('submitting').classList.remove('visible');
+      document.getElementById('done').classList.add('visible');
+    } catch(err) {
+      console.error(err);
+      document.getElementById('submitting').classList.remove('visible');
+      document.getElementById('error-screen').classList.add('visible');
+      btn.disabled = false;
+    }
+  }
+
+  function retrySubmit() { document.getElementById('error-screen').classList.remove('visible'); go(5); }
+</script>
+</body>
+</html>
